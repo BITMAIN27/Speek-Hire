@@ -1,53 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 function App() {
   const [responseMessage, setResponseMessage] = useState('');
-  const [currentQuestion,setCurrentQuestion] = useState('');
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [count, setCount] = useState(0);
 
-  useEffect(() => {
-    // Hardcoded data
+  // Button click handler to increment count and send a new request
+  const handleClick = async () => {
+    // Increment the count
+    setCount(prevCount => prevCount + 1);
+    if (count >= 4){ setCount(0)};
 
-    const transcript = {
-        transcript: "My string transcript"
-    };
-    const sendTranscriptToFlask = async () => {
-      try{
-        const response = await axios.post('/proccess_audio',transcript)
-        setResponseMessage(response.data.message);  // Display success message
-        console.log(response.data.message);  // Log the entire response
+    // Send a POST request to fetch a new question
+    const index = { index: count };  // Send the updated `count` as the index
+    try {
+      const response = await axios.post('/get_question', index);
+      setCurrentQuestion(response.data.data);  // Update the question based on response
+      console.log(response.data.data);  // Log the response for debugging
+    } catch (error) {
+      setCurrentQuestion('Error fetching question');
+      console.error('Error:', error);
+    }
 
-      } catch (error)
-      {
-        setResponseMessage('Error submitting data');
-        console.error('Error:', error);
-      }
-    };
-
-    const get_question = async () => {
-        try{
-          const response = await axios.get("/get_question")
-          setCurrentQuestion(response.data.message)
-          console.log(response.data.message)
-        } catch (error){
-          console.log(error)
-        }
-    };
-
-    get_question();
-    sendTranscriptToFlask();
-
-  }, []);
+    // Optionally, send the transcript to Flask if needed
+    const transcript = { transcript: "My string transcript" };
+    try {
+      const transcriptResponse = await axios.post('/proccess_audio', transcript);
+      setResponseMessage(transcriptResponse.data.message);  // Update message based on response
+      console.log(transcriptResponse.data.message);  // Log the transcript response
+    } catch (error) {
+      setResponseMessage('Error submitting data');
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <div className="App">
       <h1>Sending Hardcoded Data to Flask</h1>
       <div>
-          <h3>{currentQuestion || "Loading question..."}</h3>
+        <h3>{currentQuestion || "Loading question..."}</h3>
+        <button onClick={handleClick}>Click Me!</button>
+        <p>You clicked the button {count} times.</p>
+        {responseMessage && <p>{responseMessage}</p>}
       </div>
     </div>
   );
 }
 
 export default App;
-
