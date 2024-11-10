@@ -3,6 +3,7 @@ import axios from 'axios';
 
 function App() {
   const [responseMessage, setResponseMessage] = useState('');
+  const [currentQuestion,setCurrentQuestion] = useState('');
 
   useEffect(() => {
     // Hardcoded data
@@ -14,7 +15,7 @@ function App() {
       try{
         const response = await axios.post('/proccess_audio',transcript)
         setResponseMessage(response.data.message);  // Display success message
-        console.log(response.data);  // Log the entire response
+        console.log(response.data.message);  // Log the entire response
 
       } catch (error)
       {
@@ -23,6 +24,17 @@ function App() {
       }
     };
 
+    const get_question = async () => {
+        try{
+          const response = await axios.get("/get_question")
+          setCurrentQuestion(response.data.message)
+          console.log(response.data.message)
+        } catch (error){
+          console.log(error)
+        }
+    };
+
+    get_question();
     sendTranscriptToFlask();
 
   }, []);
@@ -31,7 +43,7 @@ function App() {
     <div className="App">
       <h1>Sending Hardcoded Data to Flask</h1>
       <div>
-        <h3>{responseMessage}</h3>  {/* Display response from Flask */}
+          <h3>{currentQuestion || "Loading question..."}</h3>
       </div>
     </div>
   );
